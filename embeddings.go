@@ -47,7 +47,7 @@ const (
 // then their vector representations should also be similar.
 type Embedding struct {
 	Object    string    `json:"object"`
-	Embedding []float32 `json:"embedding"`
+	Embedding []float64 `json:"embedding"`
 	Index     int       `json:"index"`
 }
 
@@ -55,12 +55,12 @@ type Embedding struct {
 // embedding vector. Both vectors must have the same length; otherwise, an
 // ErrVectorLengthMismatch is returned. The method returns the calculated dot
 // product as a float32 value.
-func (e *Embedding) DotProduct(other *Embedding) (float32, error) {
+func (e *Embedding) DotProduct(other *Embedding) (float64, error) {
 	if len(e.Embedding) != len(other.Embedding) {
 		return 0, ErrVectorLengthMismatch
 	}
 
-	var dotProduct float32
+	var dotProduct float64
 	for i := range e.Embedding {
 		dotProduct += e.Embedding[i] * other.Embedding[i]
 	}
@@ -80,16 +80,16 @@ type EmbeddingResponse struct {
 
 type base64String string
 
-func (b base64String) Decode() ([]float32, error) {
+func (b base64String) Decode() ([]float64, error) {
 	decodedData, err := base64.StdEncoding.DecodeString(string(b))
 	if err != nil {
 		return nil, err
 	}
 
-	const sizeOfFloat32 = 4
-	floats := make([]float32, len(decodedData)/sizeOfFloat32)
+	const sizeOfFloat = 8
+	floats := make([]float64, len(decodedData)/sizeOfFloat)
 	for i := 0; i < len(floats); i++ {
-		floats[i] = math.Float32frombits(binary.LittleEndian.Uint32(decodedData[i*4 : (i+1)*4]))
+		floats[i] = math.Float64frombits(binary.LittleEndian.Uint64(decodedData[i*sizeOfFloat : (i+1)*sizeOfFloat]))
 	}
 
 	return floats, nil
